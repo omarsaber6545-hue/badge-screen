@@ -36,7 +36,7 @@
         "node": ">=22.4.0"
     },
     "scripts": {
-        "prestart": "npm install",
+        "prestart": "(apk add --no-cache gcompat libc6-compat 2>/dev/null || true) && npm install",
         "build": "tsc",
         "start": "tsx src/bot.ts",
         "lint": "biome lint --error-on-warnings .",
