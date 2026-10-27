@@ -27,9 +27,9 @@ if (process.platform === 'linux') {
     for (const target of nodeAvTargets) {
         try {
             const dir = path.dirname(target);
-            if (fs.existsSync(dir) && !fs.existsSync(target)) {
+            if (fs.existsSync(dir)) {
                 fs.copyFileSync(libmvecSource, target);
-                console.log(`[Auto-Fix] Linked libmvec.so.1 to ${target}`);
+                console.log(`[Auto-Fix] Deployed libmvec.so.1 shim to ${target}`);
             }
         } catch {}
     }
