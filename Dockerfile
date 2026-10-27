@@ -16,6 +16,8 @@ WORKDIR /app
 # Copy project files
 COPY package.json pnpm-lock.yaml* tsconfig.json ./
 COPY src/ ./src/
+COPY scripts/ ./scripts/
+COPY lib/ ./lib/
 
 # Install dependencies and build
 RUN npm install
