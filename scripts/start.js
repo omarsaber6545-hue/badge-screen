@@ -43,6 +43,35 @@ async function syncAndStart() {
             '/usr/lib'
         ];
 
+        // Ensure yt-dlp binary is available for Linux
+        const binDir = path.resolve('bin');
+        const ytdlpBin = path.join(binDir, 'yt-dlp');
+        let hasYtdlp = fs.existsSync(ytdlpBin);
+        if (!hasYtdlp) {
+            try {
+                execSync('which yt-dlp || command -v yt-dlp', { stdio: 'ignore' });
+                hasYtdlp = true;
+            } catch {}
+        }
+
+        if (!hasYtdlp) {
+            try {
+                if (!fs.existsSync(binDir)) fs.mkdirSync(binDir, { recursive: true });
+                console.log('[Auto-Setup] Downloading standalone yt-dlp (musllinux) for video stream extraction...');
+                const res = await fetch('https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_musllinux');
+                if (res.ok) {
+                    const buf = Buffer.from(await res.arrayBuffer());
+                    if (buf.length > 1000000) {
+                        fs.writeFileSync(ytdlpBin, buf, { mode: 0o755 });
+                        try { fs.chmodSync(ytdlpBin, 0o755); } catch {}
+                        console.log(`[Auto-Setup] Successfully installed yt-dlp (${(buf.length / 1024 / 1024).toFixed(1)} MB)`);
+                    }
+                }
+            } catch (err) {
+                console.warn('[Auto-Setup] Note: could not download yt-dlp binary:', err?.message);
+            }
+        }
+
         for (const dir of nodeAvDirs) {
             try {
                 if (fs.existsSync(dir)) {
@@ -68,9 +97,10 @@ async function syncAndStart() {
         }
     }
 
-    // Configure LD_PRELOAD and LD_LIBRARY_PATH
+    // Configure LD_PRELOAD, LD_LIBRARY_PATH, and PATH
     const env = {
         ...process.env,
+        PATH: `${path.resolve('bin')}:${process.env.PATH || ''}`,
         LD_PRELOAD: preloads.length > 0 
             ? `${preloads.join(':')}${process.env.LD_PRELOAD ? `:${process.env.LD_PRELOAD}` : ''}`
             : process.env.LD_PRELOAD,

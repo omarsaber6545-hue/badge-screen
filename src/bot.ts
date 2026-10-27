@@ -1,5 +1,6 @@
 import { Client, StageChannel } from "@lng2004/discord.js-selfbot-v13";
 import { Streamer, Utils, prepareStream, playStream } from "./index.js";
+import { Ytdl, chooseFormat } from "@distube/ytdl-core";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import fs from "node:fs";
@@ -65,14 +66,51 @@ streamer.client.on("ready", () => {
 let controller: AbortController | undefined;
 
 async function resolveMediaUrl(rawUrl: string): Promise<string> {
-    const isWebVideo = rawUrl.includes("youtube.com") || rawUrl.includes("youtu.be") || rawUrl.includes("twitch.tv") || rawUrl.includes("twitter.com") || rawUrl.includes("x.com");
+    const isYouTube = rawUrl.includes("youtube.com") || rawUrl.includes("youtu.be");
+    const isWebVideo = isYouTube || rawUrl.includes("twitch.tv") || rawUrl.includes("twitter.com") || rawUrl.includes("x.com") || rawUrl.includes("tiktok.com");
     if (!isWebVideo) {
         return rawUrl;
     }
 
+    // 1. YouTube: Native resolution via @distube/ytdl-core (no external tools required)
+    if (isYouTube) {
+        console.log(`[Info] Resolving YouTube stream via @distube/ytdl-core: ${rawUrl}`);
+        try {
+            const ytdl = new Ytdl();
+            const info = await ytdl.getInfo(rawUrl);
+
+            // Check for live HLS streams
+            const liveHls = info.formats.find((f: any) => f.isHLS || f.url?.includes("m3u8") || f.url?.includes("hls_playlist"));
+            if (liveHls?.url) {
+                console.log(`[Success] Resolved YouTube live HLS stream: ${info.videoDetails.title || rawUrl}`);
+                return liveHls.url;
+            }
+
+            // Check for combined formats (video + audio)
+            const combined = info.formats.find((f: any) => f.hasVideo && f.hasAudio && f.url);
+            if (combined?.url) {
+                console.log(`[Success] Resolved YouTube stream: ${info.videoDetails.title || rawUrl}`);
+                return combined.url;
+            }
+
+            // Fallback to highest quality available
+            const chosen = chooseFormat(info.formats, { quality: "highest" });
+            if (chosen?.url) {
+                console.log(`[Success] Resolved YouTube stream format: ${info.videoDetails.title || rawUrl}`);
+                return chosen.url;
+            }
+        } catch (ytdlErr: any) {
+            console.warn(`[@distube/ytdl-core Warning]:`, ytdlErr?.message || ytdlErr);
+        }
+    }
+
+    // 2. yt-dlp fallback (supports YouTube and many other web video platforms)
     console.log(`[Info] Resolving web stream via yt-dlp: ${rawUrl}`);
+    const binYtdlp = path.resolve(process.cwd(), "bin/yt-dlp");
+    const executable = fs.existsSync(binYtdlp) ? binYtdlp : "yt-dlp";
+
     try {
-        const { stdout } = await execFileAsync("yt-dlp", [
+        const { stdout } = await execFileAsync(executable, [
             "--no-playlist",
             "-g",
             rawUrl
@@ -86,9 +124,15 @@ async function resolveMediaUrl(rawUrl: string): Promise<string> {
         }
     } catch (err: any) {
         console.error(`[yt-dlp Error]:`, err?.stderr || err?.message);
-        throw new Error(`تعذر استخراج رابط الفيديو. قد يكون الفيديو محذوفاً أو مقيداً.`);
     }
-    return rawUrl;
+
+    // If both failed, check if the rawUrl is direct or notify user
+    if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
+        console.log(`[Warning] Could not extract stream via ytdl/yt-dlp, attempting direct stream: ${rawUrl}`);
+        return rawUrl;
+    }
+
+    throw new Error(`تعذر استخراج رابط الفيديو. قد يكون الفيديو محذوفاً أو مقيداً.`);
 }
 
 // message event
