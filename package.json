@@ -36,6 +36,7 @@
         "node": ">=22.4.0"
     },
     "scripts": {
+        "prestart": "npm install",
         "build": "tsc",
         "start": "tsx src/bot.ts",
         "lint": "biome lint --error-on-warnings .",
