@@ -79,25 +79,30 @@ async function resolveMediaUrl(rawUrl: string): Promise<string> {
             const ytdl = new Ytdl();
             const info = await ytdl.getInfo(rawUrl);
 
-            // Check for live HLS streams
-            const liveHls = info.formats.find((f: any) => f.isHLS || f.url?.includes("m3u8") || f.url?.includes("hls_playlist"));
-            if (liveHls?.url) {
-                console.log(`[Success] Resolved YouTube live HLS stream: ${info.videoDetails.title || rawUrl}`);
-                return liveHls.url;
-            }
-
-            // Check for combined formats (video + audio)
+            // 1. First priority: Combined video + audio formats
             const combined = info.formats.find((f: any) => f.hasVideo && f.hasAudio && f.url);
             if (combined?.url) {
-                console.log(`[Success] Resolved YouTube stream: ${info.videoDetails.title || rawUrl}`);
+                console.log(`[Success] Resolved YouTube combined stream (${combined.qualityLabel || combined.itag}): ${info.videoDetails.title || rawUrl}`);
                 return combined.url;
             }
 
-            // Fallback to highest quality available
-            const chosen = chooseFormat(info.formats, { quality: "highest" });
-            if (chosen?.url) {
-                console.log(`[Success] Resolved YouTube stream format: ${info.videoDetails.title || rawUrl}`);
-                return chosen.url;
+            // 2. Second priority: Formats with video (Live HLS streams or highest quality video)
+            const videoFormats = info.formats.filter((f: any) => f.hasVideo && f.url);
+            if (videoFormats.length > 0) {
+                let chosen = videoFormats.find((f: any) => f.isHLS && (f.qualityLabel?.includes("720") || f.qualityLabel?.includes("1080")));
+                if (!chosen) {
+                    try {
+                        chosen = chooseFormat(videoFormats, { quality: "highest" });
+                    } catch {}
+                }
+                if (!chosen) {
+                    chosen = videoFormats[0];
+                }
+
+                if (chosen?.url) {
+                    console.log(`[Success] Resolved YouTube video stream (${chosen.qualityLabel || chosen.itag}): ${info.videoDetails.title || rawUrl}`);
+                    return chosen.url;
+                }
             }
         } catch (ytdlErr: any) {
             console.warn(`[@distube/ytdl-core Warning]:`, ytdlErr?.message || ytdlErr);
