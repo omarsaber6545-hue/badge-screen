@@ -1,0 +1,74 @@
+{
+    "name": "@dank074/discord-video-stream",
+    "version": "7.0.0",
+    "description": "Experiment for making video streaming work for discord selfbots",
+    "exports": "./dist/index.js",
+    "types": "dist/index.d.ts",
+    "type": "module",
+    "files": [
+        "dist",
+        "src"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
+    "dependencies": {
+        "@lng2004/node-datachannel": "0.33.2-20260921",
+        "@snazzah/davey": "^0.1.12",
+        "debug-level": "^4.1.1",
+        "node-av": "6.2.0-beta.25",
+        "p-debounce": "^5.1.0",
+        "sharp": "^0.35.3",
+        "yocto-queue": "^1.2.2"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "2.5.5",
+        "@lng2004/discord.js-selfbot-v13": "^3.7.2",
+        "@types/node": "^26.1.1",
+        "pkg-pr-new": "^0.0.80",
+        "typescript": "^7.0.2"
+    },
+    "peerDependencies": {
+        "@lng2004/discord.js-selfbot-v13": "^3.7.2"
+    },
+    "engines": {
+        "node": ">=22.4.0"
+    },
+    "scripts": {
+        "build": "tsc",
+        "lint": "biome lint --error-on-warnings .",
+        "lint:fix": "biome lint --write .",
+        "check": "biome check .",
+        "check:fix": "biome check --write ."
+    },
+    "keywords": [
+        "discord",
+        "video",
+        "voice",
+        "stream",
+        "go-live"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/dank074/Discord-video-stream.git"
+    },
+    "contributors": [
+        "Long Nguyen <nguyen.long.908132@gmail.com>",
+        "s074 <torresefrain10@gmail.com>",
+        "mrjvs <jellevs@gmail.com>",
+        "Elysia <71698422+aiko-chan-ai@users.noreply.github.com>",
+        "Fede14 <fede.ferri2001@gmail.com>",
+        "Malthe Morsing Larsen <57196060+malthemorsing@users.noreply.github.com>"
+    ],
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Discord-RE/Discord-video-stream/issues"
+    },
+    "homepage": "https://github.com/Discord-RE/Discord-video-stream#readme",
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "@lng2004/node-datachannel",
+            "node-datachannel"
+        ]
+    }
+}
