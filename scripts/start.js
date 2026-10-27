@@ -17,19 +17,23 @@ if (process.platform === 'linux') {
         preloads.push(libmvecSource);
     }
 
-    const nodeAvTargets = [
-        path.resolve('node_modules/@seydx/node-av-linux-x64/libmvec.so.1'),
-        '/app/node_modules/@seydx/node-av-linux-x64/libmvec.so.1',
-        '/lib/libmvec.so.1',
-        '/usr/lib/libmvec.so.1'
+    const nodeAvDirs = [
+        path.resolve('node_modules/@seydx/node-av-linux-x64'),
+        '/app/node_modules/@seydx/node-av-linux-x64',
+        '/lib',
+        '/usr/lib'
     ];
 
-    for (const target of nodeAvTargets) {
+    for (const dir of nodeAvDirs) {
         try {
-            const dir = path.dirname(target);
             if (fs.existsSync(dir)) {
-                fs.copyFileSync(libmvecSource, target);
-                console.log(`[Auto-Fix] Deployed libmvec.so.1 shim to ${target}`);
+                if (fs.existsSync(libmvecSource)) {
+                    fs.copyFileSync(libmvecSource, path.join(dir, 'libmvec.so.1'));
+                }
+                if (fs.existsSync(libchkSource)) {
+                    fs.copyFileSync(libchkSource, path.join(dir, 'libchk.so'));
+                }
+                console.log(`[Auto-Fix] Deployed shims to ${dir}`);
             }
         } catch {}
     }
@@ -43,6 +47,10 @@ const env = {
         : process.env.LD_PRELOAD,
     LD_LIBRARY_PATH: `${process.env.LD_LIBRARY_PATH || ''}:${libDir}:/app/lib:/usr/local/lib:/usr/lib:/lib`
 };
+
+if (process.platform === 'linux') {
+    console.log(`[System] Active LD_PRELOAD: ${env.LD_PRELOAD}`);
+}
 
 const cmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 const child = spawn(cmd, ['tsx', 'src/bot.ts'], {
