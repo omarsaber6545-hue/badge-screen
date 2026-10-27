@@ -13,17 +13,18 @@
         "access": "public"
     },
     "dependencies": {
+        "@lng2004/discord.js-selfbot-v13": "^3.7.2",
         "@lng2004/node-datachannel": "0.33.2-20260921",
         "@snazzah/davey": "^0.1.12",
         "debug-level": "^4.1.1",
         "node-av": "6.2.0-beta.25",
         "p-debounce": "^5.1.0",
         "sharp": "^0.35.3",
+        "tsx": "^4.19.2",
         "yocto-queue": "^1.2.2"
     },
     "devDependencies": {
         "@biomejs/biome": "2.5.5",
-        "@lng2004/discord.js-selfbot-v13": "^3.7.2",
         "@types/node": "^26.1.1",
         "pkg-pr-new": "^0.0.80",
         "typescript": "^7.0.2"
@@ -36,6 +37,7 @@
     },
     "scripts": {
         "build": "tsc",
+        "start": "tsx src/bot.ts",
         "lint": "biome lint --error-on-warnings .",
         "lint:fix": "biome lint --write .",
         "check": "biome check .",

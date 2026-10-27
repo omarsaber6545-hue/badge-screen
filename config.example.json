@@ -1,0 +1,13 @@
+{
+    "token": "YOUR_DISCORD_TOKEN_HERE",
+    "acceptedAuthors": ["YOUR_USER_ID_HERE"],
+    "streamOpts": {
+        "width": 1280,
+        "height": 720,
+        "fps": 30,
+        "bitrateKbps": 1000,
+        "maxBitrateKbps": 2500,
+        "hardware_acceleration": false,
+        "videoCodec": "H264"
+    }
+}
